@@ -13,17 +13,23 @@ import shutil
 ##############################
 
 while not os.path.exists(".config"):
-    print("Please put your absolute path to python executable below. Should be C:/path/to/python/python.exe on Windows or path/to/python/python3 on Mac. \nIf you don't have it yet download from https://www.python.org/downloads/")
-    place = input().replace('\\', '/').replace("\"", "")
-    if not os.path.exists(place):
-        print("Path doesn't exist. Put in an absolute path, not just python or python.exe")
-        continue
-    elif os.system(f"{place} test.py") != 0:
-        print("Malformed python executable. Please try again.")
-        continue
+    if not os.system("python --version"):
+        place = "python"
+    elif not os.system("python3 --version"):
+        place = "python3"
     else:
-        with open(".config", mode="w") as f:
-            f.write(place)
+        print("Please put your absolute path to python executable below. Should be C:/path/to/python/python.exe on Windows or path/to/python/python3 on Mac. " \
+        "\nIf you don't have it yet download from https://www.python.org/downloads/")
+        place = input().replace('\\', '/').replace("\"", "")
+        if not os.path.exists(place):
+            print("Path doesn't exist. Put in an absolute path, not just python or python.exe")
+            continue
+        elif os.system(f"{place} test.py"):
+            print("Malformed python executable. Please try again.")
+            continue
+    with open(".config", mode="w") as f:
+        f.write(place)
+        
 with open(".config", mode="r") as f:
     PYTHON = f.readline()
 
