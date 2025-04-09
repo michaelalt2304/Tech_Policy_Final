@@ -1,5 +1,6 @@
 import os
 import shutil
+import filecmp
 #### ADDITIONAL INSTRUCTIONS HERE ####
 # Add an "elif" statement  for your OS if necessary
 # Inside of the system-dependent block below, specify some unique environment variable
@@ -8,11 +9,16 @@ import shutil
 
 #### HOW TO ADD A PACKAGE ####
 # ADD package and most recent version to requirements.txt in folder
-# DELETE virtual in this repository, if it's there
-# Run this file with Python again
+# Run this file with python run_me.py again
 ##############################
+VIRTUAL_FOLDER = "virtual"
+CONFIRM = os.path.join(VIRTUAL_FOLDER, "initialized.txt")
+READONLY_REQ = os.path.join("setup/requirements_READONLY.txt")
+REQ = "requirements.txt"
+CONFIG = "setup/.config"
 
-while not os.path.exists(".config"):
+
+while not os.path.exists(CONFIG):
     if not os.system("python --version"):
         place = "python"
     elif not os.system("python3 --version"):
@@ -24,17 +30,16 @@ while not os.path.exists(".config"):
         if not os.path.exists(place):
             print("Path doesn't exist. Put in an absolute path, not just python or python.exe")
             continue
-        elif os.system(f"{place} test.py"):
+        elif os.system(f"{place} setup/test.py"):
             print("Malformed python executable. Please try again.")
             continue
-    with open(".config", mode="w") as f:
+    with open(CONFIG, mode="w") as f:
         f.write(place)
         
-with open(".config", mode="r") as f:
+with open(CONFIG, mode="r") as f:
     PYTHON = f.readline()
 
-VIRTUAL_FOLDER = "virtual"
-CONFIRM = os.path.join(VIRTUAL_FOLDER, "initialized.txt")
+
 try:
     current_system = os.environ["OS"]
 except Exception:
@@ -45,7 +50,7 @@ if current_system == "Windows_NT":
 elif current_system == "Darwin":
     VIRTUAL_PYTHON = os.path.join(VIRTUAL_FOLDER, "bin", "python3")
     VIRTUAL_PIP = os.path.join(VIRTUAL_FOLDER, "bin", "pip3")
-    
+
     
     
 if not os.path.exists(VIRTUAL_FOLDER):
@@ -54,21 +59,11 @@ if not os.path.exists(VIRTUAL_FOLDER):
     os.system(f"{PYTHON} -m venv {VIRTUAL_FOLDER}")
     print(f"{PYTHON} -m venv {VIRTUAL_FOLDER}")
     print(current_system)
-    if current_system == "Windows_NT":
-        if os.system(f"virtual\\Scripts\\activate.bat"):
-            print(f"virtual\\Scripts\\activate.bat")
-            # shutil.rmtree(VIRTUAL_FOLDER)
-            print("Please run from cmd, not Powershell")
-            exit(1)
-    if current_system == "Darwin":
-        if os.system(f"source {VIRTUAL_FOLDER}/bin/activate"):
-            shutil.rmtree(VIRTUAL_FOLDER)
-            print("An unknown error occurred. Please contact Michael")
-            exit(1)
         
 
-if not os.path.exists(CONFIRM):
-    status = os.system(f"{VIRTUAL_PIP} install -r requirements.txt")
+if not os.path.exists(CONFIRM) or not os.path.exists(READONLY_REQ) or not filecmp.cmp(READONLY_REQ, "requirements.txt", shallow = False):
+    status = os.system(f"{VIRTUAL_PIP} install -r {REQ}")
+    shutil.copy(REQ, READONLY_REQ)
     with open(CONFIRM, 'a') as f:
         f.write("All initialized in terms of packages, etc, should run smoothly. If not contact mjstraus2304@gmail.com")
 status = os.system(f"{VIRTUAL_PYTHON} -m streamlit run main.py")
