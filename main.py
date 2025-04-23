@@ -1,6 +1,7 @@
 import streamlit as st
 from openai import OpenAI
 
+st.set_page_config("ProGuide", page_icon="🦈")
 def ask_ai(prompt):
     client = OpenAI(
         base_url="https://api.aimlapi.com/v1",
@@ -13,8 +14,9 @@ def ask_ai(prompt):
     )
     return response.choices[0].message.content
 
-st.header("Privacy in Policy Technology Final Project")
-st.subheader("By: Brigid, Michael, Alison, Brittany")
+st.header("ProGuide")
+st.subheader("Privacy in Policy Technology Final Project")
+st.text("By: Brigid, Michael, Alison, Brittany")
 
 def make_slider(label):
     return st.slider(label, min_value = 1, max_value = 5, value = 3, step = 1)
