@@ -14,7 +14,7 @@ def ask_ai(prompt):
     )
     return response.choices[0].message.content
 
-st.header("Privacy Technology Guide")
+st.header("Privacy Tool")
 st.subheader("Policy for Privacy Technology Final Project")
 st.text("By: Brigid, Michael, Alison, Brittany")
 
@@ -99,6 +99,50 @@ decision_tree = {
     }
 }
 
+# Define the secondary decision tree for privacy budget allocation
+privacy_budget_decision_tree = {
+    "Will multiple separate parties be asking questions about the data?": {
+        "No": {
+            "How many queries will you need to make?": {
+                "Finite": "A fixed budget with no budget refreshes.", # LEAF
+                "Infinite": {
+                    "Will new data enter your dataset and old data retire?": {
+                        "Yes": "A regular budget refresh to account for the new data.", # LEAF
+                        "No": "A fixed budget with no budget refreshes." # LEAF
+                    }
+                }
+            }
+        },
+        "Yes": {
+            "Can you trust that these parties won’t collude? For example, will they share the results of their queries.": {
+                "Yes": {
+                    "How many queries will you need to make?": {
+                        "Finite": "A fixed budget with no budget refreshes.", # LEAF
+                        "Infinite": {
+                            "Will new data enter your dataset and old data retire?": {
+                                "Yes": "A regular budget refresh to account for the new data. Decreased budget per party that handles the data.", # LEAF
+                                "No": "A fixed budget with no budget refreshes. Decreased budget per party that handles the data." # LEAF
+                            }
+                        }
+                    }
+                },
+                "No": {
+                    "How many queries will you need to make?": {
+                        "Finite": "A fixed budget with no budget refreshes.", # LEAF
+                        "Infinite": {
+                            "Will new data enter your dataset and old data retire?": {
+                                "Yes": "A regular budget refresh to account for the new data. More budget allowed per party that handles the data.", # LEAF
+                                "No": "A fixed budget with no budget refreshes. Decreased budget allowed per party that handles the data." # LEAF
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 # Add welcome text
 st.write("Welcome to the Privacy Tool! Answer the below questions to understand what privacy tool would be the best fit for your data usage scenario!")
 
@@ -107,6 +151,12 @@ if "node" not in st.session_state:
     st.session_state.node = decision_tree
 if "history" not in st.session_state:
     st.session_state.history = []
+if "stage" not in st.session_state:
+    st.session_state.stage = "main"
+if "final_recommendation" not in st.session_state:
+    st.session_state.final_recommendation = ""
+if "show_first_recommendation" not in st.session_state:
+    st.session_state.show_first_recommendation = False
 
 # Function to display the current question or answer
 def ask_question(node):
@@ -115,20 +165,51 @@ def ask_question(node):
         options = list(node[question].keys())
         choice = st.radio(question, options)
 
-        if st.button("Next"):
+        if st.button("Next", key=f"next_{question}"):
             st.session_state.history.append((question, choice))
             st.session_state.node = node[question][choice]
             st.rerun()
     else:
-        recommendation_html = """
-            <h5>Our Recommendation</h5>
-            """
-        st.markdown(recommendation_html, unsafe_allow_html=True)
-        st.success(node)
-        if st.button("Restart"):
-            st.session_state.node = decision_tree
-            st.session_state.history = []
+        # Check if privacy budget needs to be allocated
+        if st.session_state.stage == "main":
+            st.session_state.final_recommendation = node
+            st.session_state.show_first_recommendation = True
             st.rerun()
+        else:
+            # Before final recommendation in second tree, ask privacy budget question
+            if not st.session_state.get("slider_submitted", False):
+                st.subheader("Before we finalize your recommendation...")
+
+                slider_value = st.slider(
+                    "On a scale from 1 (Prioritize Privacy) to 10 (Prioritize Utility), what is your preference?",
+                    min_value=1,
+                    max_value=10,
+                    value=5,
+                    key="temp_slider_value"  # only widget manages this
+                )
+
+                if st.button("Submit Preference", key="submit_slider_preference"):
+                    st.session_state.slider_answer = slider_value  # now read it from widget
+                    st.session_state.history.append((
+                        "Privacy vs Utility Preference",
+                        f"{st.session_state.slider_answer}/10"
+                    ))
+                    st.session_state.slider_submitted = True
+                    st.session_state.final_recommendation = node
+                    st.rerun()
+            else:
+                recommendation_html = """
+                    <h5>Our Recommendation</h5>
+                    """
+                st.markdown(recommendation_html, unsafe_allow_html=True)
+                st.success(node)
+                if st.button("Restart", key="restart_button_1"):
+                    st.session_state.node = decision_tree
+                    st.session_state.history = []
+                    st.session_state.stage = "main"
+                    st.session_state.final_recommendation = ""
+                    st.session_state.show_first_recommendation = False
+                    st.rerun()
 
 # Display previous choices
 if st.session_state.history:
@@ -141,6 +222,31 @@ if st.session_state.history:
     history_html += "</div>"
 
     st.markdown(history_html, unsafe_allow_html=True)
+
+# Navigate the correct decision tree
+if st.session_state.show_first_recommendation:
+    recommendation_html = """
+        <h5>Our Recommendation</h5>
+        """
+    st.markdown(recommendation_html, unsafe_allow_html=True)
+    st.success(st.session_state.final_recommendation)
+    if "DP" in st.session_state.final_recommendation:
+        st.subheader("Let's now determine the privacy budget")
+        if st.button("Continue to Privacy Budget Questions", key="privacy_budget"):
+            st.session_state.history.append(("Your privacy technology recommendation", st.session_state.final_recommendation))
+            st.session_state.stage = "data_followup"
+            st.session_state.node = privacy_budget_decision_tree
+            st.session_state.show_first_recommendation = False
+            st.rerun()
+    else:
+        if st.button("Restart", key="restart_button_2"):
+            st.session_state.node = decision_tree
+            st.session_state.history = []
+            st.session_state.stage = "main"
+            st.session_state.final_recommendation = ""
+            st.session_state.show_first_recommendation = False
+            st.session_state.slider_submitted = False
+            st.rerun()
 
 # Ask the next question or show the final answer
 ask_question(st.session_state.node)
