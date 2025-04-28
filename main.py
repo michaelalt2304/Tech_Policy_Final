@@ -25,32 +25,82 @@ decision_tree = {
             "How is your data stored?": {
                 "Locally": {
                     "Do you want to jointly comput a publically-known function without sharing any raw, noised data?": {
-                        "Yes": {"Secure MPC"}, #LEAF
-                        "No": {"Do you have a trusted analyst to process the data and a trusted location to store the data centrally?":
-                                   {
-
-                                   }}
+                        "Yes": "Secure MPC", #LEAF
+                        "No": {
+                            "Do you have a trusted analyst to process the data and a trusted location to store the data centrally?": {
+                                "Yes": {
+                                    "What do you prioritize more?": {
+                                        "Accuracy": {
+                                            "What kinds of questions do you want to answer?": {
+                                                "Numerical": "Central DP with Laplace Mechanism", #LEAF
+                                                "Categorical": "Central DP with Exponential Mechanism" #LEAF
+                                            }
+                                        },
+                                        "Privacy": {
+                                            "What kinds of questions do you want to answer?": {
+                                                "Numerical": "Local DP with Laplace Mechanism",  # LEAF
+                                                "Categorical": "Local DP with Exponential Mechanism"  # LEAF
+                                            }
+                                        }
+                                    }
+                                },
+                                "No": {
+                                    "What kinds of questions do you want to answer?": {
+                                        "Numerical": "Local DP with Laplace Mechanism", #LEAF
+                                        "Categorical": "Local DP with Exponential Mechanism" #LEAF
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
                 "Centrally": {
-
+                    "What kinds of questions do you want to answer?": {
+                        "Numerical": "Central DP with Laplace Mechanism",  # LEAF
+                        "Categorical": "Central DP with Exponential Mechanism" # LEAF
+                    }
                 }
             }
         },
         "Send it privately to other parties": {
-            "Do you like designing visuals or writing content?": {
-                "Designing Visuals": "You might enjoy being a Graphic Designer!",
-                "Writing Content": "You might enjoy being a Content Writer!",
+             "Do you have a pre-shared private key?": {
+                "Yes": "Private-key cryptography", #LEAF
+                "No": "Public-key cryptography" #LEAF
             }
         },
-        "publically release it": {},
-        "train an ML model": {},
-        "verify data integrity":{}
+        "Publicly release it": {
+             "How will the released data be used?": {
+                "Answer a pre-specified query set": "Generate synthetic data with private GANS", #LEAF
+                "Answer unknown queries": "Generate synthetic data with the exponential mechanism" #LEAF
+            }
+        },
+        "Train an ML model": {
+            "How is your data being stored?": {
+                "Centrally": "Central DP-ML", #LEAF
+                "Locally": {
+                    "Do you have a trusted secure server?": {
+                        "Yes":  "Federated learning with secure server + central DP", #LEAF
+                        "No": {
+                            "What do you prioritize more?": {
+                                "Accuracy": "Federated learning with MPC + Central DP", #LEAF
+                                "Privacy and computational efficiency": "Federated learning with local DP" #LEAF
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Verify data integrity":{
+            "What would you like to verify?": {
+                "Authenticity and integrity of the data": "Digital signatures",  # LEAF
+                "Data hasn't been tampered with": "Cryptographic hash functions"  # LEAF
+            }
+        }
     }
 }
 
 # Add welcome text
-st.write("Welcome to the Privacy Tool! Answer the below questions to understand what privacy tool would be the best fit for your data!")
+st.write("Welcome to the Privacy Tool! Answer the below questions to understand what privacy tool would be the best fit for your data usage scenario!")
 
 # Store session state to keep track of progress
 if "node" not in st.session_state:
