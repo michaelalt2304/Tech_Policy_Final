@@ -56,7 +56,7 @@ decision_tree = {
                 },
                 "Centrally": {
                     "What kinds of questions do you want to answer?": {
-                        "Numerical": "Central DP with Laplace Mechanism",  # LEAF
+                        "Numerical": "Central Differential Privacy (DP) with the Laplace Mechanism\n\nCentral DP with the Laplace Mechanism protects individual data as a rigorous mathematical tool adding calibrated noise to aggregate query results. The Laplace mechanism is a natural fit for numeric queries (like counts or sums), as it ensures differential privacy by adding noise proportional to the query’s sensitivity. This approach is well-suited here because the data is centrally collected and can be processed in a secure environment, enabling accurate analytics while protecting individual privacy.",  # LEAF
                         "Categorical": "Central DP with Exponential Mechanism" # LEAF
                     }
                 }
@@ -107,7 +107,7 @@ privacy_budget_decision_tree = {
                 "Finite": "A fixed budget with no budget refreshes.", # LEAF
                 "Infinite": {
                     "Will new data enter your dataset and old data retire?": {
-                        "Yes": "A regular budget refresh to account for the new data.", # LEAF
+                        "Yes": "Use a small epsilon (<=1) and consider a regular budget refresh.\n\nSince new data will be continuously entering the system and the user expects to make ongoing queries, a regular privacy budget refresh helps maintain utility over time without compromising long-term privacy. A small epsilon (≤ 1) is recommended to prioritize strong privacy guarantees, keeping individual data contributions highly protected even in the presence of repeated access. This balance allows for responsible, privacy-preserving analytics at scale.", # LEAF
                         "No": "A fixed budget with no budget refreshes." # LEAF
                     }
                 }
@@ -181,7 +181,7 @@ def ask_question(node):
                 st.subheader("Before we finalize your recommendation...")
 
                 slider_value = st.slider(
-                    "On a scale from 1 (Prioritize Privacy) to 10 (Prioritize Utility), what is your preference?",
+                    "On a scale from 1 (Prioritize Accuracy) to 10 (Prioritize Privacy), what is your preference?",
                     min_value=1,
                     max_value=10,
                     value=5,
@@ -191,7 +191,7 @@ def ask_question(node):
                 if st.button("Submit Preference", key="submit_slider_preference"):
                     st.session_state.slider_answer = slider_value  # now read it from widget
                     st.session_state.history.append((
-                        "Privacy vs Utility Preference",
+                        "Privacy vs Accuracy Preference",
                         f"{st.session_state.slider_answer}/10"
                     ))
                     st.session_state.slider_submitted = True
