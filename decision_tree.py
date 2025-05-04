@@ -138,7 +138,7 @@ legal_decision_tree = {
                         "Yes": {
                             "Does your data include personal data?": {
                                 "Yes": {
-                                    "Are you handling data containing medical records or. educational records?": { #USA QUESITONS
+                                    "Are you handling data containing medical records or educational records?": { #USA QUESITONS
                                         "Medical": {
                                             "Are you handling data of minors (children under the age of 13)?": {
                                                 "Yes": "COPPA + HIPAA + CCPA",
@@ -154,6 +154,12 @@ legal_decision_tree = {
                                         "Neither": {
                                             "Are you handling data of minors (children under the age of 13)?": {
                                                 "Yes": "COPPA + CCPA",
+                                                "No" : "No recommendation"
+                                            }
+                                        },
+                                        "Both": {
+                                            "Are you handling data of minors (children under the age of 13)?": {
+                                                "Yes": "HIPPA + FERPA + COPPA + CCPA",
                                                 "No" : "No recommendation"
                                             }
                                         }
@@ -186,7 +192,13 @@ legal_decision_tree = {
                                         "Yes": "COPPA",
                                         "No" : "No recommendation"
                                     }
-                                }
+                                },
+                                    "Both": {
+                                        "Are you handling data of minors (children under the age of 13)?": {
+                                            "Yes": "HIPPA + FERPA + COPPA",
+                                            "No" : "No recommendation"
+                                        }
+                                    }
                             }
                         }
                     }
@@ -209,6 +221,12 @@ legal_decision_tree = {
                             "Are you handling data of minors (children under the age of 13)?": {
                                 "Yes": "COPPA",
                                 "No": "No recommendation"
+                            }
+                        },
+                        "Both": {
+                            "Are you handling data of minors (children under the age of 13)?": {
+                                "Yes": "HIPPA + FERPA + COPPA",
+                                "No" : "No recommendation"
                             }
                         }
                     }
@@ -238,6 +256,12 @@ legal_decision_tree = {
                                         "Neither": {
                                             "Are you handling data of minors (children under the age of 13)?": {
                                                 "Yes": "COPPA + CCPA + GDPR",
+                                                "No" : "No recommendation"
+                                            }
+                                        },
+                                        "Both": {
+                                            "Are you handling data of minors (children under the age of 13)?": {
+                                                "Yes": "HIPPA + FERPA + COPPA + CCPA + GDPR",
                                                 "No" : "No recommendation"
                                             }
                                         }
@@ -273,6 +297,12 @@ legal_decision_tree = {
                                                 "Yes": "COPPA + GDPR",
                                                 "No": "No recommendation"
                                             }
+                                        },
+                                        "Both": {
+                                            "Are you handling data of minors (children under the age of 13)?": {
+                                                "Yes": "HIPPA + FERPA + COPPA + GDPR",
+                                                "No" : "No recommendation"
+                                            }
                                         }
                                     }
                                 },  # GDPR
@@ -307,6 +337,12 @@ legal_decision_tree = {
                                     "Are you handling data of minors (children under the age of 13)?": {
                                         "Yes": "COPPA + GDPR",
                                         "No": "No recommendation"
+                                    }
+                                },
+                                "Both": {
+                                    "Are you handling data of minors (children under the age of 13)?": {
+                                        "Yes": "HIPPA + FERPA + COPPA + GDPR",
+                                        "No" : "No recommendation"
                                     }
                                 }
                             }
