@@ -1,5 +1,7 @@
 import streamlit as st
 from openai import OpenAI
+from streamlit import slider
+
 from decision_tree import decision_tree, legal_decision_tree, privacy_budget_decision_tree
 
 st.set_page_config("Privacy Technology Guide", page_icon="🦈")
@@ -35,6 +37,16 @@ if "slider_submitted" not in st.session_state:
 if "summarize_recommendations" not in st.session_state:
     st.session_state.summarize_recommendations = False
 
+# -- SLIDER RECOMMENDATION
+
+def get_slider_text(slider_value):
+    if slider_value > 6:
+        return "To prioritize strong privacy guarantees over data accuracy, use a small epsilon (<1) and use a very small value (<10^{-7}) or 0 for delta. Expect high noise and impacts to analytical utility. Selecting these parameters requires great care. Work with a privacy expert to ensure the value of these parameters works well with your data."
+    elif slider_value > 3:
+        return "To balance privacy and accuracy, consider mid-range epsilon (>1 but <=3) and delta values (>10^{-7} but < 10^{-5}). Selecting these parameters requires great care. Work with a privacy expert to ensure the value of these parameters works well with your data."
+    else:
+        return "Maximize utility by using a larger privacy budget. Consider a larger epsilon value (>3 but <= 10) and a larger delta value (> 10^{-5} but <= 1/n where n is the size of your dataset). Selecting these parameters requires great care. Work with a privacy expert to ensure the value of these parameters works well with your data."
+
 # --- DECISION FOREST NAVIGATION LOGIC ---
 def ask_question(node):
     if isinstance(node, dict):
@@ -69,9 +81,13 @@ def ask_question(node):
                     st.rerun()
             else:
                 if not st.session_state.summarize_recommendations:
-                    st.markdown("<h5>Our Recommendation</h5>", unsafe_allow_html=True)
-                    st.success(node)
-                if st.session_state.stage == "main" and "DP" in node:
+                    if st.session_state.stage == "data_followup" and st.session_state.get("slider_submitted", True):
+                        st.markdown("<h5>Our Recommendation</h5>", unsafe_allow_html=True)
+                        st.success(get_slider_text(st.session_state.slider_answer) + node)
+                    else:
+                        st.markdown("<h5>Our Recommendation</h5>", unsafe_allow_html=True)
+                        st.success(node)
+                if st.session_state.stage == "main" and "Differential Privacy" in node:
                     st.subheader("Let's now determine how implementation details")
                     if st.button("Continue to Implementation Questions", key="privacy_budget"):
                         st.session_state.history.append(("Your privacy technology recommendation", node))
@@ -82,7 +98,10 @@ def ask_question(node):
                 elif st.session_state.stage == "data_followup" or st.session_state.stage == "main":
                     st.subheader("Let's now understand the legal and policy considerations for your scenario")
                     if st.button("Continue to Legal Questions", key="risk_mitigation_button"):
-                        st.session_state.history.append(("Privacy budget recommendation", node))
+                        if st.session_state.stage == "data_followup":
+                            st.session_state.history.append(("Implementation Recommendations", get_slider_text(st.session_state.slider_answer) + node))
+                        else:
+                            st.session_state.history.append(("Your privacy technology recommendation", node))
                         st.session_state.stage = "risk_followup"
                         st.session_state.node = legal_decision_tree
                         st.session_state.final_recommendation = ""
@@ -92,7 +111,7 @@ def ask_question(node):
                     if not st.session_state.summarize_recommendations:
                         if st.button("Summarize Tool Recommendations", key="summary_button"):
                             st.session_state.summarize_recommendations = True
-                            st.session_state.history.append(("Risk mitigation recommendation", node))
+                            st.session_state.history.append(("Legal and Policy Recommendations", node))
                             st.rerun()
                     else:
                         st.subheader("Summary of Privacy Technology Recommendations")
